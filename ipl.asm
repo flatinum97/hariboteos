@@ -1,6 +1,8 @@
 ; myos
 ; TAB=4
 
+CYLS    EQU     10
+
         ORG     0x7c00
 
 ; Boot
@@ -65,6 +67,14 @@ next:
         ADD     CL, 1
         CMP     CL, 18
         JBE     readloop
+        MOV     CL, 1
+        ADD     DH, 1
+        CMP     DH, 2
+        JB      readloop
+        MOV     DH, 0
+        ADD     CH, 1
+        CMP     CH, CYLS
+        JB      readloop
 fin:
         HLT
         JMP     fin
