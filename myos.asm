@@ -1,7 +1,11 @@
 ; myos
 ; TAB=4
 
+        ORG     0x7c00
+
 ; Boot
+        JMP     entry
+        DB      0x90
 
         DB      0xeb, 0x4e, 0x90
         DB      "MYOSIPL "
@@ -25,11 +29,30 @@
 
 ; Main Body
 
-        DB      0xb8, 0x00, 0x00, 0x8e, 0xd0, 0xbc, 0x00, 0x7c
-        DB      0x8e, 0xd8, 0x8e, 0xc0, 0xbe, 0x74, 0x7c, 0x8a
-        DB      0x04, 0x83, 0xc6, 0x01, 0x3c, 0x00, 0x74, 0x09
-        db      0xb4, 0x0e, 0xbb, 0x0f, 0x00, 0xcd, 0x10, 0xeb
-        db      0xee, 0xf4, 0xeb, 0xfd
+entry:
+        MOV     AX, 0
+        MOV     SS, AX
+        MOV     SP, 0x7c00
+        MOV     DS, AX
+        MOV     ES, AX
+        MOV     SI, msg
+putloop:
+        MOV     AL, [SI]
+        ADD     SI, 1
+        CMP     AL, 0
+        JE      fin
+        MOV     AH, 0x0e
+        MOV     BX, 15
+        INT     0x10
+        JMP     putloop
+fin:
+        HLT
+        JMP     fin
+msg:
+        DB      0x0a, 0x0a
+        DB      "Hello, World"
+        DB      0x0a
+        DB      0
 
 ; Message
 
