@@ -34,8 +34,21 @@ entry:
         MOV     SS, AX
         MOV     SP, 0x7c00
         MOV     DS, AX
+
+; Load disk
+
+        MOV     AX, 0x0820
         MOV     ES, AX
-        MOV     SI, msg
+        MOV     CH, 0
+        MOV     DH, 0
+        MOV     CL, 2
+
+        MOV     AH, 0x02
+        MOV     AL, 1
+        MOV     BX, 0
+        MOV     DL,0x00
+        INT     0x13
+        JC      error
 putloop:
         MOV     AL, [SI]
         ADD     SI, 1
@@ -48,6 +61,8 @@ putloop:
 fin:
         HLT
         JMP     fin
+error:
+        MOV     SI, msg
 msg:
         DB      0x0a, 0x0a
         DB      "Hello, World"
