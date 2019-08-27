@@ -1,4 +1,4 @@
-; myos
+; myos-ipl
 ; TAB=4
 
 CYLS        EQU         10
