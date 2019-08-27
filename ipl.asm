@@ -74,14 +74,7 @@ error:
         MOV     SI, msg
 msg:
         DB      0x0a, 0x0a
-        DB      "Hello, World"
-        DB      0x0a
-        DB      0
-
-; Message
-
-        DB      0x0a, 0x0a
-        DB      "Hello, World"
+        DB      "Load error"
         DB      0x0a
         DB      0
         RESB    0x1fe-($-$$)
