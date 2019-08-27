@@ -75,6 +75,8 @@ next:
                 ADD             CH, 1
                 CMP             CH, CYLS
                 JB              readloop
+
+                JMP             0xc200
 fin:
                 HLT
                 JMP             fin
