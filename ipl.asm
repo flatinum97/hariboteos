@@ -43,12 +43,21 @@ entry:
         MOV     DH, 0
         MOV     CL, 2
 
+        MOV     SI, 0
+retry:
         MOV     AH, 0x02
         MOV     AL, 1
         MOV     BX, 0
-        MOV     DL,0x00
+        MOV     DL, 0x00
         INT     0x13
-        JC      error
+        JNC     fin
+        ADD     SI, 1
+        CMP     SI, 5
+        JAE     error
+        MOV     AH, 0x00
+        MOV     DL, 0x00
+        INT     0x13
+        JMP     retry
 putloop:
         MOV     AL, [SI]
         ADD     SI, 1
