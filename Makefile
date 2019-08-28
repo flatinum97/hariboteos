@@ -4,11 +4,14 @@ ipl10.bin : ipl10.asm Makefile
 asmhead.bin : asmhead.asm Makefile
 	nasm asmhead.asm -o asmhead.bin -l asmhead.lst
 
-bootpack.bin : bootpack.c
-	gcc -c -m32 -fno-pic -o bootpack.bin bootpack.c
+nasmfunc.o : nasmfunc.asm Makefile
+	nasm -g -f elf nasmfunc.asm -o nasmfunc.o
 
-myos.sys : asmhead.bin bootpack.bin
-	cat asmhead.bin bootpack.bin > myos.sys
+bootpack.hrb : bootpack.c  nasmfunc.o Makefile
+	gcc -c -m32 -fno-pic -nostdlib -T har.ld -g bootpack.c nasmfunc.o -o bootpack.hrb
+
+myos.sys : asmhead.bin bootpack.hrb Makefile
+	cat asmhead.bin bootpack.hrb > myos.sys
 
 myos.img : ipl10.bin myos.sys Makefile
 	mformat -f 1440 -C -B ipl10.bin -i myos.img ::
@@ -25,3 +28,5 @@ clean :
 	rm -f *.lst
 	rm -f *.sys
 	rm -f *.img
+	rm -f *.o
+	rm -f *.hrb

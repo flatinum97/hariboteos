@@ -1,7 +1,9 @@
+void io_hlt(void);
+
 void MyOSMain(void)
 {
 
 fin:
-    /* HLT should be called here */
+    io_hlt();
     goto fin;
 }
