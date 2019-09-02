@@ -1,6 +1,7 @@
 # myos
 
 ## Dependencies
+- nasm
 - mtools
 - qemu
 
