@@ -99,3 +99,7 @@ msg:
                 DB              0
                 RESB            0x1fe-($-$$)
                 DB              0x55, 0xaa
+                DB              0xf0, 0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 0x00
+                RESB            4600
+                DB              0xf0, 0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 0x00
+                RESB            1469432
