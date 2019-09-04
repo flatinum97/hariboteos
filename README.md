@@ -1,4 +1,4 @@
-# myos
+# haribote-os
 
 ## Dependencies
 - mtools
