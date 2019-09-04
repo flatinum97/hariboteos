@@ -1,9 +1,9 @@
-; myos
+; haribote-os
 ; TAB=4
 
-BOTPAK  EQU             0x0028000
-DSKCAC  EQU             0x0010000
-DSKCAC0 EQU             0x0008000
+BOTPAK  EQU             0x00280000
+DSKCAC  EQU             0x00100000
+DSKCAC0 EQU             0x00080000
 
 ; BOOT_INFO
 CYLS    EQU             0x0ff0
