@@ -7,7 +7,7 @@ void HariMain(void)
     char *p;
 
     for (i = 0xa0000; i <= 0xaffff; i++) {
-        *(p + i) = i & 0x0f;
+        p[i] = i & 0x0f;
     }
 
     for (;;) {
