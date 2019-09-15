@@ -38,3 +38,4 @@ clean :
 	rm -f *.img
 	rm -f *.o
 	rm -f *.hrb
+	rm -f *.name
