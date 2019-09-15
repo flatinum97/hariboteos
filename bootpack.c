@@ -36,15 +36,10 @@ void HariMain(void)
 {
     char *vram;
     int xsize, ysize;
-    struct BOOTINFO *binfo;
-
-    binfo = (struct BOOTINFO *) 0x0ff0;
-    xsize = (*binfo).scrnx;
-    ysize = (*binfo).scrny;
-    vram = (*binfo).vram;
+    struct BOOTINFO *binfo = (struct BOOTINFO *) 0x0ff0;
 
     init_palette();
-    init_screen(vram, xsize, ysize);
+    init_screen(binfo->vram, binfo->scrnx, binfo->scrny);
 
     for (;;) {
         io_hlt();
