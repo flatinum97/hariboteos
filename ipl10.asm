@@ -1,4 +1,4 @@
-; myos-ipl
+; haribote-ipl
 ; TAB=4
 
 CYLS        EQU         10
@@ -10,7 +10,7 @@ CYLS        EQU         10
                 DB              0x90
 
                 DB              0xeb, 0x4e, 0x90
-                DB              "MYOSIPL "
+                DB              "HARIBOTE"
                 DW              512
                 DB              1
                 DW              1
@@ -25,7 +25,7 @@ CYLS        EQU         10
                 DD              2880
                 DB              0, 0, 0x29
                 DD              0xffffffff
-                DB              "MYOS-OS    "
+                DB              "HARIBOTE-OS"
                 DB              "FAT12   "
                 RESB            18
 
@@ -99,3 +99,7 @@ msg:
                 DB              0
                 RESB            0x1fe-($-$$)
                 DB              0x55, 0xaa
+                DB              0xf0, 0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 0x00
+                RESB            4600
+                DB              0xf0, 0xff, 0xff, 0xff, 0x0f, 0x00, 0x00, 0x00
+                RESB            1469432

@@ -1,27 +1,35 @@
-ipl10.bin : ipl10.asm Makefile
-	nasm ipl10.asm -o ipl10.bin -l ipl10.lst
+TARGET=haribote
 
-asmhead.bin : asmhead.asm Makefile
-	nasm asmhead.asm -o asmhead.bin -l asmhead.lst
+run :
+	docker run --rm -v $(shell pwd):/mnt haribote make img
+	qemu-system-i386 -fda haribote.img
 
-nasmfunc.o : nasmfunc.asm Makefile
-	nasm -g -f elf nasmfunc.asm -o nasmfunc.o
+$(TARGET).img : ipl10.bin $(TARGET).sys
+	echo $(TARGET).sys > $(TARGET).name
+	dd if=ipl10.bin of=$(TARGET).img count=2880 bs=512 conv=notrunc
+	dd if=$(TARGET).name of=$(TARGET).img count=1 bs=512 seek=19 conv=notrunc
+	dd if=$(TARGET).sys  of=$(TARGET).img count=4 bs=512 seek=33 conv=notrunc
 
-bootpack.hrb : bootpack.c  nasmfunc.o Makefile
-	gcc -c -m32 -fno-pic -nostdlib -T har.ld -g bootpack.c nasmfunc.o -o bootpack.hrb
+%.o : %.c
+	gcc -m32 -c -fno-pic -nostdlib -o $@ $<
 
-myos.sys : asmhead.bin bootpack.hrb Makefile
-	cat asmhead.bin bootpack.hrb > myos.sys
+asmhead.o : asmhead.asm
+	nasm $^ -o $@ -l asmhead.lst
 
-myos.img : ipl10.bin myos.sys Makefile
-	mformat -f 1440 -C -B ipl10.bin -i myos.img ::
-	mcopy -i myos.img myos.sys ::
+nasmfunc.o : nasmfunc.asm
+	nasm -felf32 $^ -o $@ -l nasmfunc.lst
+
+$(TARGET).bin : bootpack.o  nasmfunc.o
+	ld -m elf_i386 -e HariMain -n -Thrb.ld -static -o $(TARGET).bin $^
+
+$(TARGET).sys : asmhead.o $(TARGET).bin
+	cat $^ > $(TARGET).sys
+
+ipl10.bin : ipl10.asm
+	nasm -fbin -o $@ $^ -l ipl10.lst
 
 img :
-	make -r myos.img
-
-run : myos.img
-	qemu-system-i386 -L . -m 32 -rtc base=localtime -vga std -drive file=myos.img,index=0,if=floppy,format=raw
+	make -r $(TARGET).img
 
 clean :
 	rm -f *.bin
@@ -30,3 +38,4 @@ clean :
 	rm -f *.img
 	rm -f *.o
 	rm -f *.hrb
+	rm -f *.name
