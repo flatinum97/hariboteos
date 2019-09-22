@@ -10,7 +10,7 @@ $(TARGET).img : ipl10.bin $(TARGET).sys
 	dd if=$(TARGET).sys  of=$(TARGET).img count=14 bs=512 seek=33 conv=notrunc
 
 %.o : %.c
-	gcc -m32 -c -fno-pic -nostdlib -o $@ $<
+	gcc -m32 -fno-pic -fno-stack-protector -nostdlib -c -o $@ $<
 
 asmhead.o : asmhead.asm
 	nasm $^ -o $@ -l asmhead.lst
@@ -18,7 +18,7 @@ asmhead.o : asmhead.asm
 nasmfunc.o : nasmfunc.asm
 	nasm -felf32 $^ -o $@ -l nasmfunc.lst
 
-$(TARGET).bin : bootpack.o  nasmfunc.o hankaku.o
+$(TARGET).bin : bootpack.o  nasmfunc.o hankaku.o sprintf.o
 	ld -m elf_i386 -e HariMain -n -Thrb.ld -static -o $(TARGET).bin $^
 
 $(TARGET).sys : asmhead.o $(TARGET).bin
