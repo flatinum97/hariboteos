@@ -1,7 +1,6 @@
 TARGET=haribote
 
-run :
-	docker run --rm -v $(shell pwd):/mnt haribote make img
+run : $(TARGET).img
 	qemu-system-i386 -fda haribote.img
 
 $(TARGET).img : ipl10.bin $(TARGET).sys
