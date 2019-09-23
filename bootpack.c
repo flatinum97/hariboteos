@@ -15,6 +15,8 @@ void HariMain(void)
     init_mouse_cursor8(mcursor, COL8_008484);
     putblock_8(binfo->vram, binfo->scrnx, 16, 16, mx, my, mcursor, 16);
 
+    init_pic();
+
     for (;;) {
         io_hlt();
     }
