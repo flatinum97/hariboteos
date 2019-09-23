@@ -1,4 +1,6 @@
 TARGET=haribote
+target_size = $(shell wc -c $(TARGET).sys | cut -f1 -d' ')
+target_byte_size = $(shell expr $(target_size) / 512 + 1)
 
 run : $(TARGET).img
 	qemu-system-i386 -fda haribote.img
@@ -7,7 +9,7 @@ $(TARGET).img : ipl10.bin $(TARGET).sys
 	echo $(TARGET).sys > $(TARGET).name
 	dd if=ipl10.bin of=$(TARGET).img count=2880 bs=512 conv=notrunc
 	dd if=$(TARGET).name of=$(TARGET).img count=1 bs=512 seek=19 conv=notrunc
-	dd if=$(TARGET).sys  of=$(TARGET).img count=14 bs=512 seek=33 conv=notrunc
+	dd if=$(TARGET).sys  of=$(TARGET).img count=$(target_byte_size) bs=512 seek=33 conv=notrunc
 
 %.o : %.c
 	gcc -m32 -fno-pic -fno-stack-protector -nostdlib -c -o $@ $<
@@ -18,7 +20,7 @@ asmhead.o : asmhead.asm
 nasmfunc.o : nasmfunc.asm
 	nasm -felf32 $^ -o $@ -l nasmfunc.lst
 
-$(TARGET).bin : bootpack.o  nasmfunc.o hankaku.o sprintf.o
+$(TARGET).bin : bootpack.o dsctbl.o graphic.o nasmfunc.o hankaku.o sprintf.o int.o
 	ld -m elf_i386 -e HariMain -n -Thrb.ld -static -o $(TARGET).bin $^
 
 $(TARGET).sys : asmhead.o $(TARGET).bin
