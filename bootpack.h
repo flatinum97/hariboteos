@@ -16,9 +16,14 @@ struct GATE_DESCRIPTOR {
     short offset_high;
 };
 
+struct KEYBUF {
+    unsigned char data, flag;
+};
+
 void io_hlt(void);
 void io_cli(void);
 void io_sti(void);
+void io_stihlt(void);
 void io_out8(int port, int data);
 char io_in8(int port);
 int io_load_eflags(void);
