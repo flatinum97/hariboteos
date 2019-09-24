@@ -4,7 +4,7 @@ extern struct KEYBUF keybuf;
 
 void HariMain(void)
 {
-    int i;
+    int i, j;
     struct BOOTINFO *binfo = (struct BOOTINFO *) 0x0ff0;
 
     init_gdtidt();
@@ -26,11 +26,14 @@ void HariMain(void)
 
     for (;;) {
         io_cli();
-        if (keybuf.flag == 0) {
+        if (keybuf.next == 0) {
             io_stihlt();
         } else {
-            i = keybuf.data;
-            keybuf.flag = 0;
+            i = keybuf.data[0];
+            keybuf.next--;
+            for (j = 0; j < keybuf.next; j++) {
+                keybuf.data[j] = keybuf.data[j + 1];
+            }
             io_sti();
             unsigned char s[4];
             sprintf(s, "%x", i);
