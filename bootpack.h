@@ -18,7 +18,7 @@ struct GATE_DESCRIPTOR {
 
 struct KEYBUF {
     unsigned char data[32];
-    int next;
+    int next_r, next_w, len;
 };
 
 void io_hlt(void);
