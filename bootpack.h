@@ -32,6 +32,7 @@ void io_store_eflags(int eflags);
 void load_gdtr(int limit, int addr);
 void load_idtr(int limit, int addr);
 void asm_inthandler21(void);
+void asm_inthandler2c(void);
 
 void init_palette(void);
 void init_screen(char *vram, int xsize, int ysize);
@@ -86,3 +87,7 @@ void fifo8_init(struct FIFO8 *fifo, int size, unsigned char * buf);
 int fifo8_get(struct FIFO8 *fifo);
 int fifo8_put(struct FIFO8 *fifo, unsigned char data);
 int fifo8_status(struct FIFO8 *fifo);
+
+void wait_KBC_standby(void);
+void init_keyboard(void);
+void enable_mouse(void);
