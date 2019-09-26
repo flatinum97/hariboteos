@@ -24,6 +24,7 @@ void HariMain(void)
     char mcursor[16 * 16], s[4], keybuf[32], mousebuf[128];
     const int mx = binfo->scrnx / 2 - 16;
     const int my = binfo->scrny / 2 - 16;
+    unsigned char mouse_dbuf[3], mouse_phase;
 
     init_mouse_cursor8(mcursor, COL8_008484);
     putblock_8(binfo->vram, binfo->scrnx, 16, 16, mx, my, mcursor, 16);
@@ -36,6 +37,7 @@ void HariMain(void)
 
     init_keyboard();
     enable_mouse();
+    mouse_phase = 0;
 
     fifo8_init(&keyfifo, 32, keybuf);
     fifo8_init(&mousefifo, 128, mousebuf);
@@ -54,9 +56,28 @@ void HariMain(void)
             } else if (fifo8_status(&mousefifo) != 0) {
                 i = fifo8_get(&mousefifo);
                 io_sti();
-                sprintf(s, "%x", i);
-                boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 32, 16, 47, 31);
-                putfont8_asc(binfo->vram, binfo->scrnx, 32, 16, COL8_FFFFFF, s);
+                switch (mouse_phase) {
+                    case 0:
+                        if (i == 0xfa) {
+                            mouse_phase = 1;
+                        }
+                        break;
+                    case 1:
+                        mouse_dbuf[0] = i;
+                        mouse_phase = 2;
+                        break;
+                    case 2:
+                        mouse_dbuf[1] = i;
+                        mouse_phase = 3;
+                        break;
+                    case 3:
+                        mouse_dbuf[2] = i;
+                        mouse_phase = 1;
+                        sprintf(s, "%x %x %x", mouse_dbuf[0], mouse_dbuf[1], mouse_dbuf[2]);
+                        boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 32, 16, 32 + 8 * 8 - 1, 31);
+                        putfont8_asc(binfo->vram, binfo->scrnx, 32, 16, COL8_FFFFFF, s);
+                        break;
+                }
             }
         }
     }
