@@ -10,6 +10,7 @@
 #define MOUSECMD_ENABLE      0xf4
 
 extern struct FIFO8 keyfifo;
+extern struct FIFO8 mousefifo;
 
 void HariMain(void)
 {
@@ -20,7 +21,7 @@ void HariMain(void)
     init_palette();
     init_screen(binfo->vram, binfo->scrnx, binfo->scrny);
 
-    char mcursor[16 * 16], s[4], keybuf[32];
+    char mcursor[16 * 16], s[4], keybuf[32], mousebuf[128];
     const int mx = binfo->scrnx / 2 - 16;
     const int my = binfo->scrny / 2 - 16;
 
@@ -37,17 +38,26 @@ void HariMain(void)
     enable_mouse();
 
     fifo8_init(&keyfifo, 32, keybuf);
+    fifo8_init(&mousefifo, 128, mousebuf);
 
     for (;;) {
         io_cli();
-        if (fifo8_status(&keyfifo) == 0) {
+        if (fifo8_status(&keyfifo) + fifo8_status(&mousefifo) == 0) {
             io_stihlt();
         } else {
-            i = fifo8_get(&keyfifo);
-            io_sti();
-            sprintf(s, "%x", i);
-            boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 0, 16, 15, 31);
-            putfont8_asc(binfo->vram, binfo->scrnx, 0, 16, COL8_FFFFFF, s);
+            if (fifo8_status(&keyfifo) != 0) {
+                i = fifo8_get(&keyfifo);
+                io_sti();
+                sprintf(s, "%x", i);
+                boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 0, 16, 15, 31);
+                putfont8_asc(binfo->vram, binfo->scrnx, 0, 16, COL8_FFFFFF, s);
+            } else if (fifo8_status(&mousefifo) != 0) {
+                i = fifo8_get(&mousefifo);
+                io_sti();
+                sprintf(s, "%x", i);
+                boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 32, 16, 47, 31);
+                putfont8_asc(binfo->vram, binfo->scrnx, 32, 16, COL8_FFFFFF, s);
+            }
         }
     }
 }
