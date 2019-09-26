@@ -1,5 +1,10 @@
 #include "bootpack.h"
 
+#define PORT_KEYDAT 0x0060
+
+struct FIFO8 keyfifo;
+struct FIFO8 mousefifo;
+
 void init_pic(void) {
     io_out8(PIC0_IMR, 0xff);
     io_out8(PIC1_IMR, 0xff);
@@ -20,12 +25,21 @@ void init_pic(void) {
     return;
 }
 
-void inthandler21(int *esp) {
-    struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
-    boxfill8(binfo->vram, binfo->scrnx, COL8_000000, 0, 0, 32 * 8 - 1, 15);
-    putfont8_asc(binfo->vram, binfo->scrnx, 0, 0, COL8_FFFFFF, "INT 21 (IRQ-1): PS/2 keyboard");
+void inthandler21(int *esp)
+{
+    unsigned char data;
+    io_out8(PIC0_OCW2, 0x61);
+    data = io_in8(PORT_KEYDAT);
+    fifo8_put(&keyfifo, data);
+    return;
+}
 
-    for (;;) {
-        io_hlt();
-    }
+void inthandler2c(int *esp)
+{
+    unsigned char data;
+    io_out8(PIC1_OCW2, 0x64);
+    io_out8(PIC0_OCW2, 0x62);
+    data = io_in8(PORT_KEYDAT);
+    fifo8_put(&mousefifo, data);
+    return;
 }

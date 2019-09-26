@@ -20,7 +20,7 @@ asmhead.o : asmhead.asm
 nasmfunc.o : nasmfunc.asm
 	nasm -felf32 $^ -o $@ -l nasmfunc.lst
 
-$(TARGET).bin : bootpack.o dsctbl.o graphic.o nasmfunc.o hankaku.o sprintf.o int.o
+$(TARGET).bin : bootpack.o dsctbl.o graphic.o nasmfunc.o hankaku.o sprintf.o int.o fifo.o
 	ld -m elf_i386 -e HariMain -n -Thrb.ld -static -o $(TARGET).bin $^
 
 $(TARGET).sys : asmhead.o $(TARGET).bin

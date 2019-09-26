@@ -16,15 +16,23 @@ struct GATE_DESCRIPTOR {
     short offset_high;
 };
 
+struct FIFO8 {
+    unsigned char *buf;
+    int p, q, size, free, flags;
+};
+
 void io_hlt(void);
 void io_cli(void);
 void io_sti(void);
+void io_stihlt(void);
 void io_out8(int port, int data);
+char io_in8(int port);
 int io_load_eflags(void);
 void io_store_eflags(int eflags);
 void load_gdtr(int limit, int addr);
 void load_idtr(int limit, int addr);
 void asm_inthandler21(void);
+void asm_inthandler2c(void);
 
 void init_palette(void);
 void init_screen(char *vram, int xsize, int ysize);
@@ -72,3 +80,14 @@ void init_pic(void);
 #define PIC1_ICW2 0x00a1
 #define PIC1_ICW3 0x00a1
 #define PIC1_ICW4 0x00a1
+
+#define FLAGS_OVERRUN 0x0001;
+
+void fifo8_init(struct FIFO8 *fifo, int size, unsigned char * buf);
+int fifo8_get(struct FIFO8 *fifo);
+int fifo8_put(struct FIFO8 *fifo, unsigned char data);
+int fifo8_status(struct FIFO8 *fifo);
+
+void wait_KBC_standby(void);
+void init_keyboard(void);
+void enable_mouse(void);
