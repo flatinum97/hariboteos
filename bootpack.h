@@ -21,6 +21,11 @@ struct FIFO8 {
     int p, q, size, free, flags;
 };
 
+struct MOUSE_DEC {
+    unsigned char buf[3], phase;
+    int x, y, btn;
+};
+
 void io_hlt(void);
 void io_cli(void);
 void io_sti(void);
@@ -90,4 +95,5 @@ int fifo8_status(struct FIFO8 *fifo);
 
 void wait_KBC_standby(void);
 void init_keyboard(void);
-void enable_mouse(void);
+void enable_mouse(struct MOUSE_DEC *mdec);
+int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat);
