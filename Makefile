@@ -3,7 +3,7 @@ target_size = $(shell wc -c $(TARGET).sys | cut -f1 -d' ')
 target_byte_size = $(shell expr $(target_size) / 512 + 1)
 
 run : $(TARGET).img
-	qemu-system-i386 -fda haribote.img
+	qemu-system-i386 -drive file=haribote.img,format=raw,index=0,if=floppy
 
 $(TARGET).img : ipl10.bin $(TARGET).sys
 	echo $(TARGET).sys > $(TARGET).name

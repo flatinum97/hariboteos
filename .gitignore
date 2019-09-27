@@ -1,2 +1,8 @@
-myos.img
-ipl.lst
+*.img
+*.lst
+*.o
+*.bin
+*.name
+*.sys
+hankaku.c
+hankakutxt2c
