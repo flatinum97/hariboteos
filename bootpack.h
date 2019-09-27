@@ -23,6 +23,7 @@ struct FIFO8 {
 
 struct MOUSE_DEC {
     unsigned char buf[3], phase;
+    int x, y, btn;
 };
 
 void io_hlt(void);
