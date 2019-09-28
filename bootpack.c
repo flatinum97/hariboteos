@@ -1,16 +1,30 @@
 #include "bootpack.h"
 
-#define PORT_KEYDAT          0x0060
-#define PORT_KEYSTA          0x0064
-#define PORT_KEYCMD          0x0064
-#define KEYSTA_SEND_NOTREADY 0x02
-#define KEYCMD_WRITE_MODE    0x60
-#define KEYCMD_SENDTO_MOUSE  0xd4
-#define KBC_MODE             0x47
-#define MOUSECMD_ENABLE      0xf4
+#define EFLAGS_AC_BIT 0x00040000
+#define CR0_CACHE_DISABLE 0x60000000
+#define MEMMAN_FREES 4090
+#define MEMMAN_ADDR 0x003c0000
+
+struct FREEINFO {
+    unsigned int addr, size;
+};
+
+struct MEMMAN {
+    int frees, maxfrees, lostsize, losts;
+    struct FREEINFO free[MEMMAN_FREES];
+};
 
 extern struct FIFO8 keyfifo;
 extern struct FIFO8 mousefifo;
+extern int load_cr0(void);
+extern void store_cr0(int cr0);
+extern unsigned int memtest_sub(unsigned int start, unsigned int end);
+
+unsigned int memtest(unsigned int start, unsigned int end);
+void memman_init(struct MEMMAN *man);
+unsigned int memman_total(struct MEMMAN *man);
+unsigned int memman_alloc(struct MEMMAN *man, unsigned int size);
+int memman_free(struct MEMMAN *man, unsigned int addr, unsigned int size);
 
 void HariMain(void)
 {
@@ -25,6 +39,8 @@ void HariMain(void)
     char mcursor[16 * 16], s[4], keybuf[32], mousebuf[128];
     int mx = binfo->scrnx / 2 - 16;
     int my = binfo->scrny / 2 - 16;
+    unsigned int memtotal;
+    struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
 
     init_mouse_cursor8(mcursor, COL8_008484);
     putblock_8(binfo->vram, binfo->scrnx, 16, 16, mx, my, mcursor, 16);
@@ -40,6 +56,13 @@ void HariMain(void)
 
     fifo8_init(&keyfifo, 32, keybuf);
     fifo8_init(&mousefifo, 128, mousebuf);
+
+    memtotal = memtest(0x00400000, 0xbfffffff);
+    memman_init(memman);
+    memman_free(memman, 0x00001000, 0x0009e000);
+    memman_free(memman, 0x00400000, memtotal - 0x00400000);
+    sprintf(s, "memory %dMB, free : %dKB", memtotal / (1024 * 1024), memman_total(memman) / 1024);
+    putfont8_asc(binfo->vram, binfo->scrnx, 0, 32, COL8_FFFFFF, s);
 
     for (;;) {
         io_cli();
@@ -94,67 +117,119 @@ void HariMain(void)
     }
 }
 
-void wait_KBC_standby(void)
+unsigned int memtest(unsigned int start, unsigned int end)
 {
-    for (;;) {
-        if ((io_in8(PORT_KEYSTA) & KEYSTA_SEND_NOTREADY) == 0) {
+    char flg486 = 0;
+    unsigned int eflg, cr0, i;
+
+    eflg = io_load_eflags();
+    eflg |= EFLAGS_AC_BIT;
+    io_store_eflags(eflg);
+    eflg = io_load_eflags();
+    if ((eflg & EFLAGS_AC_BIT) != 0) {
+        flg486 = 1;
+    }
+    eflg &= ~EFLAGS_AC_BIT;
+    io_store_eflags(eflg);
+
+    if (flg486 != 0) {
+        cr0 = load_cr0();
+        cr0 |= CR0_CACHE_DISABLE;
+        store_cr0(cr0);
+    }
+
+    i = memtest_sub(start, end);
+
+    if (flg486 != 0) {
+        cr0 = load_cr0();
+        cr0 &= ~CR0_CACHE_DISABLE;
+        store_cr0(cr0);
+    }
+
+    return i;
+}
+
+void memman_init(struct MEMMAN *man)
+{
+    man->frees = 0;
+    man->maxfrees = 0;
+    man->lostsize = 0;
+    man->losts = 0;
+    return;
+}
+
+unsigned int memman_total(struct MEMMAN *man)
+{
+    unsigned int i, t = 0;
+    for (i = 0; i < man->frees; i++) {
+        t += man->free[i].size;
+    }
+    return t;
+}
+
+unsigned int memman_alloc(struct MEMMAN *man, unsigned int size)
+{
+    unsigned int i, a;
+    for (i = 0; i < man->frees; i++) {
+        if (man->free[i].size >= size) {
+            a = man->free[i].addr;
+            man->free[i].addr += size;
+            man->free[i].size -= size;
+            if (man->free[i].size == 0) {
+                man->frees--;
+                for (; i < man->frees; i++) {
+                    man->free[i] = man->free[i + 1];
+                }
+            }
+            return a;
+        }
+    }
+    return 0;
+}
+
+int memman_free(struct MEMMAN *man, unsigned int addr, unsigned int size)
+{
+    int i, j;
+    for (i = 0; i < man->frees; i++) {
+        if (man->free[i].addr > addr) {
             break;
         }
     }
-    return;
-}
-
-void init_keyboard(void)
-{
-    wait_KBC_standby();
-    io_out8(PORT_KEYCMD, KEYCMD_WRITE_MODE);
-    wait_KBC_standby();
-    io_out8(PORT_KEYDAT, KBC_MODE);
-    return;
-}
-
-void enable_mouse(struct MOUSE_DEC *mdec)
-{
-    wait_KBC_standby();
-    io_out8(PORT_KEYCMD, KEYCMD_SENDTO_MOUSE);
-    wait_KBC_standby();
-    io_out8(PORT_KEYDAT, MOUSECMD_ENABLE);
-    mdec->phase = 0;
-    return;
-}
-
-int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat)
-{
-    switch (mdec->phase) {
-        case 0:
-            if (dat == 0xfa) {
-                mdec->phase = 1;
+    if (i > 0) {
+        if (man->free[i - 1].addr + man->free[i - 1].size == addr) {
+            man->free[i - 1].size += size;
+            if (i < man->frees) {
+                if (addr + size == man->free[i].addr) {
+                    man->free[i - 1].size += man->free[i].size;
+                    man->frees--;
+                    for (; i < man->frees; i++) {
+                        man->free[i] = man->free[i + 1];
+                    }
+                }
             }
             return 0;
-        case 1:
-            if ((dat & 0xc8) == 0x08) {
-                mdec->buf[0] = dat;
-                mdec->phase = 2;
-            }
-            return 0;
-        case 2:
-            mdec->buf[1] = dat;
-            mdec->phase = 3;
-            return 0;
-        case 3:
-            mdec->buf[2] = dat;
-            mdec->phase = 1;
-            mdec->btn = mdec->buf[0] & 0x07;
-            mdec->x = mdec->buf[1];
-            mdec->y = mdec->buf[2];
-            if ((mdec->buf[0] & 0x10) != 0) {
-                mdec->x |= 0xffffff00;
-            }
-            if ((mdec->buf[0] & 0x20) != 0) {
-                mdec->y |= 0xffffff00;
-            }
-            mdec->y = - mdec->y;
-            return 1;
+        }
     }
+    if (i < man->frees) {
+        if (addr + size == man->free[i].addr) {
+            man->free[i].addr = addr;
+            man->free[i].size = size;
+            return 0;
+        }
+    }
+    if (man->frees < MEMMAN_FREES) {
+        for (j = man->frees; j > i; j--) {
+            man->free[j] = man->free[j - 1];
+        }
+        man->frees++;
+        if (man->maxfrees < man->frees) {
+            man->maxfrees = man->frees;
+        }
+        man->free[i].addr = addr;
+        man->free[i].size = size;
+        return 0;
+    }
+    man->losts++;
+    man->lostsize += size;
     return -1;
 }
