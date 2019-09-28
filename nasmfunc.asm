@@ -9,6 +9,7 @@ section .text
                 GLOBAL io_load_eflags, io_store_eflags
                 GLOBAL load_idtr, load_gdtr
                 GLOBAL asm_inthandler21, asm_inthandler2c
+                GLOBAL store_cr0, load_cr0
                 EXTERN inthandler21, inthandler2c
 
 io_hlt:
@@ -117,4 +118,11 @@ asm_inthandler2c:
                 POP             DS
                 POP             ES
                 IRETD
+load_cr0:
+                MOV             EAX, CR0
+                RET
 
+store_cr0:
+                MOV             EAX, [ESP+4]
+                MOV             CR0, EAX
+                RET
