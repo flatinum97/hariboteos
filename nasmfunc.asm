@@ -10,6 +10,7 @@ section .text
                 GLOBAL load_idtr, load_gdtr
                 GLOBAL asm_inthandler21, asm_inthandler2c
                 GLOBAL store_cr0, load_cr0
+                GLOBAL memtest_sub
                 EXTERN inthandler21, inthandler2c
 
 io_hlt:
@@ -125,4 +126,37 @@ load_cr0:
 store_cr0:
                 MOV             EAX, [ESP+4]
                 MOV             CR0, EAX
+                RET
+
+memtest_sub:
+                PUSH            EDI
+                PUSH            ESI
+                PUSH            EBX
+                MOV             ESI, 0xaa55aa55
+                MOV             EDI, 0x55aa55aa
+                MOV             EAX, [ESP+12+4]
+
+mts_loop:
+                MOV             EBX, EAX
+                ADD             EBX, 0xffc
+                MOV             EDX, [EBX]
+                MOV             [EBX], ESI
+                XOR             DWORD [EBX], 0xffffffff
+                CMP             EDI, [EBX]
+                JNE             mts_fin
+                XOR             DWORD [EBX], 0xffffffff
+                CMP             ESI, [EBX]
+                JNE             mts_fin
+                MOV             [EBX], EDX
+                ADD             EAX, 0x1000
+                CMP             EAX, [ESP+12+8]
+                JBE             mts_loop
+                POP             EBX
+                POP             ESI
+                POP             EDI
+mts_fin:
+                MOV             [EBX], EDX
+                POP             EBX
+                POP             ESI
+                POP             EDI
                 RET
