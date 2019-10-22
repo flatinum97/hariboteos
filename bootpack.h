@@ -155,12 +155,19 @@ void sheet_slide(struct SHEET *sht, int vx0, int vy0);
 void sheet_free(struct SHEET *sht);
 
 // timer.c
-struct TIMERCTL {
-        unsigned int count;
-        unsigned int timeout;
+#define MAX_TIMER 500
+
+struct TIMER {
+        unsigned int timeout, flags;
         struct FIFO8 *fifo;
         unsigned char data;
 };
-extern struct TIMERCTL timerctl;
+
+struct TIMERCTL {
+        unsigned int count;
+        struct TIMER timer[MAX_TIMER];
+};
+
+struct TIMERCTL timerctl;
 void init_pit(void);
 void inthandler20(int *esp);
