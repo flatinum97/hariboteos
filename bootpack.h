@@ -16,8 +16,8 @@ struct GATE_DESCRIPTOR {
     short offset_high;
 };
 
-struct FIFO8 {
-    unsigned char *buf;
+struct FIFO32 {
+    int *buf;
     int p, q, size, free, flags;
 };
 
@@ -31,13 +31,14 @@ void io_cli(void);
 void io_sti(void);
 void io_stihlt(void);
 void io_out8(int port, int data);
-char io_in8(int port);
+int io_in8(int port);
 int io_load_eflags(void);
 void io_store_eflags(int eflags);
 void load_gdtr(int limit, int addr);
 void load_idtr(int limit, int addr);
 void asm_inthandler20(void);
 void asm_inthandler21(void);
+void asm_inthandler27(void);
 void asm_inthandler2c(void);
 
 void init_palette(void);
@@ -89,10 +90,10 @@ void init_pic(void);
 
 #define FLAGS_OVERRUN 0x0001;
 
-void fifo8_init(struct FIFO8 *fifo, int size, unsigned char * buf);
-int fifo8_get(struct FIFO8 *fifo);
-int fifo8_put(struct FIFO8 *fifo, unsigned char data);
-int fifo8_status(struct FIFO8 *fifo);
+void fifo32_init(struct FIFO32 *fifo, int size, int * buf);
+int fifo32_get(struct FIFO32 *fifo);
+int fifo32_put(struct FIFO32 *fifo, int data);
+int fifo32_status(struct FIFO32 *fifo);
 
 #define PORT_KEYDAT          0x0060
 #define PORT_KEYSTA          0x0064
@@ -104,8 +105,8 @@ int fifo8_status(struct FIFO8 *fifo);
 #define MOUSECMD_ENABLE      0xf4
 
 void wait_KBC_standby(void);
-void init_keyboard(void);
-void enable_mouse(struct MOUSE_DEC *mdec);
+void init_keyboard(struct FIFO32 *fifo, int data0);
+void enable_mouse(struct FIFO32 *fifo, int data0, struct MOUSE_DEC *mdec);
 int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat);
 
 // memory.c
@@ -158,17 +159,19 @@ void sheet_free(struct SHEET *sht);
 #define MAX_TIMER 500
 
 struct TIMER {
+        struct TIMER *next;
         unsigned int timeout, flags;
-        struct FIFO8 *fifo;
-        unsigned char data;
+        struct FIFO32 *fifo;
+        int data;
 };
 
 struct TIMERCTL {
-        unsigned int count, next, using;
-        struct TIMER *timers[MAX_TIMER];
+        unsigned int count, next;
+        struct TIMER *t0;
         struct TIMER timers0[MAX_TIMER];
 };
 
 struct TIMERCTL timerctl;
 void init_pit(void);
+struct TIMER *timer_alloc(void);
 void inthandler20(int *esp);
