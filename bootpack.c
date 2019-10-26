@@ -7,7 +7,7 @@ void make_window8(unsigned char *buf, int xsize, int ysize, char *title);
 void HariMain(void)
 {
         int i, j;
-        struct BOOTINFO *binfo = (struct BOOTINFO *) 0x0ff0;
+        struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
         struct MOUSE_DEC mdec;
         struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
         struct SHTCTL *shtctl;
