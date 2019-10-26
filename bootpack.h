@@ -166,11 +166,12 @@ struct TIMER {
 };
 
 struct TIMERCTL {
-        unsigned int count, next, using;
+        unsigned int count, next;
         struct TIMER *t0;
         struct TIMER timers0[MAX_TIMER];
 };
 
 struct TIMERCTL timerctl;
 void init_pit(void);
+struct TIMER *timer_alloc(void);
 void inthandler20(int *esp);
