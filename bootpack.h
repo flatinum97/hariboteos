@@ -1,29 +1,29 @@
 struct BOOTINFO {
-    char cyls, leds, vmode, reserve;
-    short scrnx, scrny;
-    char *vram;
+        char cyls, leds, vmode, reserve;
+        short scrnx, scrny;
+        char *vram;
 };
 
 struct SEGMENT_DESCRIPTOR {
-    short limit_low, base_low;
-    char base_mid, access_right;
-    char limit_high, base_high;
+        short limit_low, base_low;
+        char base_mid, access_right;
+        char limit_high, base_high;
 };
 
 struct GATE_DESCRIPTOR {
-    short offset_low, selector;
-    char dw_count, access_right;
-    short offset_high;
+        short offset_low, selector;
+        char dw_count, access_right;
+        short offset_high;
 };
 
 struct FIFO32 {
-    int *buf;
-    int p, q, size, free, flags;
+        int *buf;
+        int p, q, size, free, flags;
 };
 
 struct MOUSE_DEC {
-    unsigned char buf[3], phase;
-    int x, y, btn;
+        unsigned char buf[3], phase;
+        int x, y, btn;
 };
 
 void io_hlt(void);
@@ -113,12 +113,12 @@ int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat);
 #define MEMMAN_FREES 4090
 
 struct FREEINFO {
-    unsigned int addr, size;
+        unsigned int addr, size;
 };
 
 struct MEMMAN {
-    int frees, maxfrees, lostsize, losts;
-    struct FREEINFO free[MEMMAN_FREES];
+        int frees, maxfrees, lostsize, losts;
+        struct FREEINFO free[MEMMAN_FREES];
 };
 
 unsigned int memtest(unsigned int start, unsigned int end);
@@ -133,16 +133,16 @@ int memman_free_4k(struct MEMMAN *man, unsigned int addr, unsigned int size);
 #define MAX_SHEETS 256
 
 struct SHEET {
-    unsigned char *buf;
-    int bxsize, bysize, vx0, vy0, col_inv, height, flags;
-    struct SHTCTL *ctl;
+        unsigned char *buf;
+        int bxsize, bysize, vx0, vy0, col_inv, height, flags;
+        struct SHTCTL *ctl;
 };
 
 struct SHTCTL {
-    unsigned char *vram, *map;
-    int xsize, ysize, top;
-    struct SHEET *sheets[MAX_SHEETS];
-    struct SHEET sheets0[MAX_SHEETS];
+        unsigned char *vram, *map;
+        int xsize, ysize, top;
+        struct SHEET *sheets[MAX_SHEETS];
+        struct SHEET sheets0[MAX_SHEETS];
 };
 
 struct SHTCTL *shtctl_init(struct MEMMAN *memman, unsigned char *vram, int xsize, int ysize);
