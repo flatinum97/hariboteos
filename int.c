@@ -2,9 +2,6 @@
 
 #define PORT_KEYDAT 0x0060
 
-struct FIFO8 keyfifo;
-struct FIFO8 mousefifo;
-
 void init_pic(void) {
     io_out8(PIC0_IMR, 0xff);
     io_out8(PIC1_IMR, 0xff);
@@ -23,4 +20,9 @@ void init_pic(void) {
     io_out8(PIC1_IMR, 0xff);
 
     return;
+}
+
+void inthandler27(int *esp) {
+        io_out8(PIC0_OCW2, 0x67);
+        return;
 }
