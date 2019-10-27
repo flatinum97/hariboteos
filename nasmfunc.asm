@@ -11,7 +11,7 @@ section .text
                 GLOBAL asm_inthandler20, asm_inthandler21, asm_inthandler27, asm_inthandler2c
                 GLOBAL store_cr0, load_cr0, load_tr
                 GLOBAL memtest_sub
-		GLOBAL taskswitch4
+		GLOBAL taskswitch3, taskswitch4
                 EXTERN inthandler20, inthandler21, inthandler27, inthandler2c
 
 io_hlt:
@@ -198,6 +198,10 @@ mts_fin:
                 POP             ESI
                 POP             EDI
                 RET
+
+taskswitch3:
+		JMP		3*8:0
+		RET
 
 taskswitch4:
 		JMP		4*8:0
