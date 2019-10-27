@@ -29,8 +29,7 @@ void asm_inthandler20(void);
 void asm_inthandler21(void);
 void asm_inthandler27(void);
 void asm_inthandler2c(void);
-void taskswitch3(void);
-void taskswitch4(void);
+void farjmp(int eip, int cs);
 
 void init_palette(void);
 void init_screen(char *vram, int xsize, int ysize);
